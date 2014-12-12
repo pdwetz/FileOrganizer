@@ -53,6 +53,7 @@ namespace FileOrganizer.Core
             {
                 throw new ApplicationException("File root path does not exist: " + fileRootPath);
             }
+
             _session = new FileOrgSession(masterRootPath, fileRootPath, isDebugOnly);
             MasterFolders = new List<MasterFolder>();
             MasterHashes = new List<NameHash>();
@@ -101,7 +102,7 @@ namespace FileOrganizer.Core
             }
             if (level >= MinLevel && level <= MaxLevel)
             {
-                MasterFolders.Add(new MasterFolder(path));
+                MasterFolders.Add(new MasterFolder(_session.MasterRootPath, path));
                 _session.MasterFolders++;
             }
         }
@@ -129,6 +130,15 @@ namespace FileOrganizer.Core
                 {
                     continue;
                 }
+                if (f.DirectoryName == match.MasterFolder.FullPath)
+                {
+                    continue;
+                }
+                if (match.MasterFolder.FullPath.StartsWith(_session.MasterRootPath) && match.Score < 1030)
+                {
+                    continue;
+                }
+
                 TargetFiles.Add(new TargetFile(filepath, f.Name, match.MasterFolder.FullPath));
                 _session.TargetFilesMoved++;
 

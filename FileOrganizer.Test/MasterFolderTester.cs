@@ -40,7 +40,7 @@ namespace FileOrganizer.Test
             string validResult = "something";
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             string result = folder.NameHashes.FirstOrDefault().Hash;
 
             Assert.IsNotNull(result);
@@ -54,7 +54,7 @@ namespace FileOrganizer.Test
             int validResultCount = 19;
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
             Assert.AreEqual(validResultCount, resultCount);
@@ -67,7 +67,7 @@ namespace FileOrganizer.Test
             int validResultCount = 1;
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
             Assert.AreEqual(validResultCount, resultCount);
@@ -80,7 +80,7 @@ namespace FileOrganizer.Test
             int validResultCount = 11;
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
             Assert.AreEqual(validResultCount, resultCount);
@@ -92,7 +92,7 @@ namespace FileOrganizer.Test
             string initial = "Single Folder";
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             var first = folder.NameHashes.OrderByDescending(x => x.Score).First();
 
             Assert.AreEqual(initial, first.Hash);
@@ -104,7 +104,7 @@ namespace FileOrganizer.Test
             string initial = "Single Folder";
 
             string masterPath = TestHelper.SetupFolder(_rootPath, initial);
-            var folder = new MasterFolder(masterPath);
+            var folder = new MasterFolder(masterPath, masterPath);
             var last = folder.NameHashes.OrderBy(x => x.Score).First();
 
             Assert.AreEqual("Single", last.Hash);
@@ -116,8 +116,8 @@ namespace FileOrganizer.Test
             string nameMisc = "misc - something";
             string nameNormal = "something";
 
-            var miscFolder = new MasterFolder(TestHelper.SetupFolder(_rootPath, nameMisc));
-            var normalFolder = new MasterFolder(TestHelper.SetupFolder(_rootPath, nameNormal));
+            var miscFolder = new MasterFolder(_rootPath, TestHelper.SetupFolder(_rootPath, nameMisc));
+            var normalFolder = new MasterFolder(_rootPath, TestHelper.SetupFolder(_rootPath, nameNormal));
 
             var miscScore = miscFolder.NameHashes.FirstOrDefault().Score;
             var normalScore = normalFolder.NameHashes.FirstOrDefault().Score;
