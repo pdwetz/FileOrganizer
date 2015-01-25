@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ using System.Text.RegularExpressions;
 
 namespace FileOrganizer.Core.Data
 {
+    [Serializable()]
     public class MasterFolder
     {
         private const string Pattern = @"[a-z] +[a-z]*|[\w'-]*";
@@ -52,6 +53,7 @@ namespace FileOrganizer.Core.Data
                 return;
             }
 
+            // Short-circuit for simple numbers, as we only care about strings
             long test;
             if (long.TryParse(Name, out test))
             {
@@ -75,6 +77,7 @@ namespace FileOrganizer.Core.Data
             }
             else
             {
+                // Treat parentheses as a method for grouping AKAs/aliases that also need to be processed
                 int startGroup = Name.IndexOf('(');
                 int endGroup = Name.IndexOf(')');
                 string main = Name.Substring(0, startGroup);

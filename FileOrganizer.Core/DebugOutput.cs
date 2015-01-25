@@ -15,20 +15,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+using FileOrganizer.Core;
 using System;
-using log4net;
+using System.Diagnostics;
 
-namespace FileOrganizer.Core.Utilities
+namespace FileOrganizer
 {
-    internal class Exceptioneer
+    public class DebugOutput : IConsoleOutput
     {
-        static public void Log(ILog log, Exception ex, string sMessage = null)
+        public void WriteLine(string message, params object[] parameters)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("{0}: ERROR ******", DateTime.Now.ToString("HH:mm:ss.fff"));
-            Console.WriteLine("For additional information, please see the log file.");
-            Console.ForegroundColor = ConsoleColor.White;
-            log.Error(sMessage ?? ex.Message, ex);
+            Debug.WriteLine(string.Format(message, parameters));
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Moves files to folders by loosely matching names")]
 [assembly: AssemblyConfiguration("FileOrganizer")]
 [assembly: AssemblyProduct("FileOrganizer")]
-[assembly: AssemblyCopyright("Copyright ©  2014 Peter Wetzel")]
+[assembly: AssemblyCopyright("Copyright ©  2015 Peter Wetzel")]
 
 [assembly: ComVisible(false)]
 [assembly: Guid("5b54eeaf-5ecc-4e38-8a9b-c5c33f2b4462")]
