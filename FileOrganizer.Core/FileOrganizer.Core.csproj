@@ -37,7 +37,14 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="StructureMap">
+      <HintPath>..\packages\structuremap.3.1.4.143\lib\net40\StructureMap.dll</HintPath>
+    </Reference>
+    <Reference Include="StructureMap.Net4">
+      <HintPath>..\packages\structuremap.3.1.4.143\lib\net40\StructureMap.Net4.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,7 +56,11 @@
     <Compile Include="DebugOutput.cs" />
     <Compile Include="Data\FileOrgSession.cs" />
     <Compile Include="Data\TargetFile.cs" />
+    <Compile Include="FileOrganizerRegistry.cs" />
+    <Compile Include="FileOrganizerSettings.cs" />
     <Compile Include="IConsoleOutput.cs" />
+    <Compile Include="IFileOrganizerSettings.cs" />
+    <Compile Include="IProcessorPhase.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Data\MasterFolder.cs" />
     <Compile Include="Data\NameHash.cs" />

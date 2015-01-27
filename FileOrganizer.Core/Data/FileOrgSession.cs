@@ -24,6 +24,7 @@ namespace FileOrganizer.Core.Data
         public long Id { get; set; }
 
         public string MasterRootPath { get; set; }
+
         public string FileRootPath { get; set; }
 
         public long TotalRuntimeMS { get; set; }
@@ -42,12 +43,12 @@ namespace FileOrganizer.Core.Data
 
         public bool IsDebugOnly { get; set; }
 
-        public FileOrgSession(string masterRootPath, string fileRootPath, bool isDebugOnly = false)
+        public FileOrgSession(IFileOrganizerSettings settings)
         {
             Id = DateTime.Now.Ticks;
-            MasterRootPath = masterRootPath;
-            FileRootPath = fileRootPath;
-            IsDebugOnly = isDebugOnly;
+            MasterRootPath = settings.MasterRootPath;
+            FileRootPath = settings.FileRootPath;
+            IsDebugOnly = settings.IsDebugOnly;
         }
     }
 }

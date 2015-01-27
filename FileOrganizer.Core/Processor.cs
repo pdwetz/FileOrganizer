@@ -30,46 +30,53 @@ namespace FileOrganizer.Core
 {
     public class Processor
     {
+        public const string MasterOutputFileFormat = "mf{0}.bin";
+
         public IConsoleOutput ConsoleOutput { get; set; }
 
+        private readonly IFileOrganizerSettings _settings;
+        private readonly IEnumerable<IProcessorPhase> _handlers;
         private readonly FileOrgSession _session;
-
-        public int MinLevel { get; set; }
-        public int MaxLevel { get; set; }
-
-        private List<string> ValidExtensions { get; set; }
 
         private List<MasterFolder> MasterFolders { get; set; }
 
-        public List<NameHash> MasterHashes { get; set; }
+        private List<NameHash> MasterHashes { get; set; }
 
-        public List<TargetFile> TargetFiles { get; set; }
+        private List<TargetFile> TargetFiles { get; set; }
 
         private string MasterOutputFilePath { get; set; }
 
-        public Processor(string masterRootPath, string fileRootPath, List<string> validExtensions = null, bool isDebugOnly = false)
+        public Processor(IFileOrganizerSettings settings, IConsoleOutput consoleOutput, IEnumerable<IProcessorPhase> handlers)
         {
-            if (!Directory.Exists(masterRootPath))
+            if (settings == null)
             {
-                throw new ApplicationException("Master root path does not exist: " + masterRootPath);
+                throw new ArgumentNullException("settings");
+            }
+            _settings = settings;
+
+            ConsoleOutput = consoleOutput;
+            if (ConsoleOutput == null) { ConsoleOutput = new DebugOutput(); }
+
+            if (!Directory.Exists(settings.MasterRootPath))
+            {
+                throw new ApplicationException("Master root path does not exist: " + _settings.MasterRootPath);
             }
 
-            if (!Directory.Exists(fileRootPath))
+            if (!Directory.Exists(settings.FileRootPath))
             {
-                throw new ApplicationException("File root path does not exist: " + fileRootPath);
+                throw new ApplicationException("File root path does not exist: " + _settings.FileRootPath);
             }
 
-            _session = new FileOrgSession(masterRootPath, fileRootPath, isDebugOnly);
-            MasterOutputFilePath = string.Format("mf{0}.bin", _session.MasterRootPath.GetHashCode());
+            _handlers = handlers;
+            _session = new FileOrgSession(_settings);
+            MasterOutputFilePath = string.Format(MasterOutputFileFormat, _session.MasterRootPath.GetHashCode());
             MasterFolders = new List<MasterFolder>();
             MasterHashes = new List<NameHash>();
             TargetFiles = new List<TargetFile>();
-            ValidExtensions = validExtensions;
         }
 
-        public void Process(bool reuseMaster = false)
-        {
-            if (ConsoleOutput == null) { ConsoleOutput = new DebugOutput(); }
+        public FileOrgSession Process(bool reuseMaster = false)
+        {   
             var overallTimer = new Stopwatch();
             overallTimer.Start();
             bool writeMasterData = true;
@@ -124,6 +131,7 @@ namespace FileOrganizer.Core
 
             ConsoleOutput.WriteLine("{0} Logging results", DateTime.Now.ToString("HH:mm:ss.fff"));
             LogResults();
+            return _session;
         }
 
         private void ProcessMasterFolder(string path, int level)
@@ -142,7 +150,7 @@ namespace FileOrganizer.Core
                     ProcessMasterFolder(dir, level);
                 }
             }
-            if (level >= MinLevel && level <= MaxLevel)
+            if (level >= _settings.MinLevel && level <= _settings.MaxLevel)
             {
                 MasterFolders.Add(new MasterFolder(_session.MasterRootPath, path));
                 _session.MasterFolders++;
@@ -162,9 +170,23 @@ namespace FileOrganizer.Core
                 }
 
                 var ext = f.Extension.ToLower();
-                if (ValidExtensions != null && !ValidExtensions.Contains(ext))
+                if (_settings.ValidExtensions != null && !_settings.ValidExtensions.Contains(ext))
                 {
                     continue;
+                }
+
+                if (_handlers != null)
+                {
+                    bool seemsokay = true;
+                    foreach (var h in _handlers)
+                    {
+                        if (!h.ValidateFile(f))
+                        {
+                            seemsokay = false;
+                            break;
+                        }
+                    }
+                    if (!seemsokay) { continue; }
                 }
 
                 var match = MasterHashes.Where(x => f.Name.Contains(x.Hash, StringComparison.OrdinalIgnoreCase)).OrderByDescending(x => x.Score).FirstOrDefault();
@@ -176,7 +198,7 @@ namespace FileOrganizer.Core
                 {
                     continue;
                 }
-                if (match.MasterFolder.FullPath.StartsWith(_session.MasterRootPath) && match.Score < 1030)
+                if (f.FullName.StartsWith(_session.MasterRootPath) && match.Score < 1030)
                 {
                     continue;
                 }
