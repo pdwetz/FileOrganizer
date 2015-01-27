@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,8 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+using System;
+
 namespace FileOrganizer.Core.Data
 {
+    [Serializable()]
     public class NameHash
     {
         public MasterFolder MasterFolder { get; private set; }

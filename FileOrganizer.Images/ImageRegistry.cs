@@ -15,20 +15,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
-using log4net;
+using FileOrganizer.Core;
+using StructureMap.Configuration.DSL;
 
-namespace FileOrganizer.Core.Utilities
+namespace FileOrganizer.Images
 {
-    internal class Exceptioneer
+    public class ImageRegistry : Registry
     {
-        static public void Log(ILog log, Exception ex, string sMessage = null)
+        public ImageRegistry()
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("{0}: ERROR ******", DateTime.Now.ToString("HH:mm:ss.fff"));
-            Console.WriteLine("For additional information, please see the log file.");
-            Console.ForegroundColor = ConsoleColor.White;
-            log.Error(sMessage ?? ex.Message, ex);
+            For<IFileOrganizerSettings>().Use<ImageSettings>();
+            For<IProcessorPhase>().Use<ImageHandler>();
+            For<IConsoleOutput>().Use<DebugOutput>();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,63 +24,114 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace FileOrganizer.Core
 {
     public class Processor
     {
+        public const string MasterOutputFileFormat = "mf{0}.bin";
+
+        public IConsoleOutput ConsoleOutput { get; set; }
+
+        private readonly IFileOrganizerSettings _settings;
+        private readonly IEnumerable<IProcessorPhase> _handlers;
         private readonly FileOrgSession _session;
-
-        public int MinLevel { get; set; }
-        public int MaxLevel { get; set; }
-
-        private List<string> ValidExtensions { get; set; }
 
         private List<MasterFolder> MasterFolders { get; set; }
 
-        public List<NameHash> MasterHashes { get; set; }
+        private List<NameHash> MasterHashes { get; set; }
 
-        public List<TargetFile> TargetFiles { get; set; }
+        private List<TargetFile> TargetFiles { get; set; }
 
-        public Processor(string masterRootPath, string fileRootPath, List<string> validExtensions = null, bool isDebugOnly = false)
+        private string MasterOutputFilePath { get; set; }
+
+        public Processor(IFileOrganizerSettings settings, IConsoleOutput consoleOutput, IEnumerable<IProcessorPhase> handlers)
         {
-            if (!Directory.Exists(masterRootPath))
+            if (settings == null)
             {
-                throw new ApplicationException("Master root path does not exist: " + masterRootPath);
+                throw new ArgumentNullException("settings");
+            }
+            _settings = settings;
+
+            ConsoleOutput = consoleOutput;
+            if (ConsoleOutput == null) { ConsoleOutput = new DebugOutput(); }
+
+            if (!Directory.Exists(settings.MasterRootPath))
+            {
+                throw new ApplicationException("Master root path does not exist: " + _settings.MasterRootPath);
             }
 
-            if (!Directory.Exists(fileRootPath))
+            if (!Directory.Exists(settings.FileRootPath))
             {
-                throw new ApplicationException("File root path does not exist: " + fileRootPath);
+                throw new ApplicationException("File root path does not exist: " + _settings.FileRootPath);
             }
-            _session = new FileOrgSession(masterRootPath, fileRootPath, isDebugOnly);
+
+            _handlers = handlers;
+            _session = new FileOrgSession(_settings);
+            MasterOutputFilePath = string.Format(MasterOutputFileFormat, _session.MasterRootPath.GetHashCode());
             MasterFolders = new List<MasterFolder>();
             MasterHashes = new List<NameHash>();
             TargetFiles = new List<TargetFile>();
-            ValidExtensions = validExtensions;
         }
 
-        public void Process()
-        {
+        public FileOrgSession Process(bool reuseMaster = false)
+        {   
             var overallTimer = new Stopwatch();
             overallTimer.Start();
-            ProcessMasterFolder(_session.MasterRootPath, 0);
+            bool writeMasterData = true;
+            if (reuseMaster && File.Exists(MasterOutputFilePath))
+            {
+                ConsoleOutput.WriteLine("{0} Loading existing Master Folder data", DateTime.Now.ToString("HH:mm:ss.fff"));
+                using (Stream stream = File.OpenRead(MasterOutputFilePath))
+                {
+                    BinaryFormatter deserializer = new BinaryFormatter();
+                    MasterFolders = (List<MasterFolder>)deserializer.Deserialize(stream);
+                    stream.Close();
+                }
+                writeMasterData = false;
+                _session.MasterFolders = MasterFolders.Count;
+            }
+            else
+            {
+                ConsoleOutput.WriteLine("{0} Parsing Master Folder", DateTime.Now.ToString("HH:mm:ss.fff"));
+                ProcessMasterFolder(_session.MasterRootPath, 0);
+            }
+            ConsoleOutput.WriteLine("{0} Master folders: {1}", DateTime.Now.ToString("HH:mm:ss.fff"), MasterFolders.Count);
             foreach (var f in MasterFolders)
             {
                 MasterHashes.AddRange(f.NameHashes);
             }
             _session.MasterHashes = MasterHashes.Count();
+            ConsoleOutput.WriteLine("{0} Master hashes: {1}", DateTime.Now.ToString("HH:mm:ss.fff"), _session.MasterHashes);
             _session.MasterFolderRuntimeMS = overallTimer.ElapsedMilliseconds;
 
             var filesTimer = new Stopwatch();
             filesTimer.Start();
+            ConsoleOutput.WriteLine("{0} Processing files", DateTime.Now.ToString("HH:mm:ss.fff"));
             ProcessFiles();
+            ConsoleOutput.WriteLine("{0} Files parsed: {1}", DateTime.Now.ToString("HH:mm:ss.fff"), _session.TargetFilesParsed);
+            ConsoleOutput.WriteLine("{0} Files moved: {1}", DateTime.Now.ToString("HH:mm:ss.fff"), _session.TargetFilesMoved);
+
+            ConsoleOutput.WriteLine("{0} Saving Master Folder data", DateTime.Now.ToString("HH:mm:ss.fff"));
+            if (writeMasterData)
+            {
+                using (Stream stream = File.Create(MasterOutputFilePath))
+                {
+                    BinaryFormatter serializer = new BinaryFormatter();
+                    serializer.Serialize(stream, MasterFolders);
+                    stream.Close();
+                }
+            }
+
             filesTimer.Stop();
             overallTimer.Stop();
             _session.TargetFilesRuntimeMS = filesTimer.ElapsedMilliseconds;
             _session.TotalRuntimeMS = overallTimer.ElapsedMilliseconds;
 
+            ConsoleOutput.WriteLine("{0} Logging results", DateTime.Now.ToString("HH:mm:ss.fff"));
             LogResults();
+            return _session;
         }
 
         private void ProcessMasterFolder(string path, int level)
@@ -99,9 +150,9 @@ namespace FileOrganizer.Core
                     ProcessMasterFolder(dir, level);
                 }
             }
-            if (level >= MinLevel && level <= MaxLevel)
+            if (level >= _settings.MinLevel && level <= _settings.MaxLevel)
             {
-                MasterFolders.Add(new MasterFolder(path));
+                MasterFolders.Add(new MasterFolder(_session.MasterRootPath, path));
                 _session.MasterFolders++;
             }
         }
@@ -119,9 +170,23 @@ namespace FileOrganizer.Core
                 }
 
                 var ext = f.Extension.ToLower();
-                if (ValidExtensions != null && !ValidExtensions.Contains(ext))
+                if (_settings.ValidExtensions != null && !_settings.ValidExtensions.Contains(ext))
                 {
                     continue;
+                }
+
+                if (_handlers != null)
+                {
+                    bool seemsokay = true;
+                    foreach (var h in _handlers)
+                    {
+                        if (!h.ValidateFile(f))
+                        {
+                            seemsokay = false;
+                            break;
+                        }
+                    }
+                    if (!seemsokay) { continue; }
                 }
 
                 var match = MasterHashes.Where(x => f.Name.Contains(x.Hash, StringComparison.OrdinalIgnoreCase)).OrderByDescending(x => x.Score).FirstOrDefault();
@@ -129,38 +194,21 @@ namespace FileOrganizer.Core
                 {
                     continue;
                 }
+                if (f.DirectoryName == match.MasterFolder.FullPath)
+                {
+                    continue;
+                }
+                if (f.FullName.StartsWith(_session.MasterRootPath) && match.Score < 1030)
+                {
+                    continue;
+                }
+
                 TargetFiles.Add(new TargetFile(filepath, f.Name, match.MasterFolder.FullPath));
                 _session.TargetFilesMoved++;
 
-                var newFileName = f.Name.Replace(f.Extension, "");
-                var newFilePath = Path.Combine(match.MasterFolder.FullPath, newFileName + f.Extension);
-                while (File.Exists(newFilePath))
-                {
-                    int index = newFileName.LastIndexOf('-');
-                    if (index < 0)
-                    {
-                        newFileName += "-1";
-                    }
-                    else
-                    {
-                        int i;
-                        string val = newFileName.Substring(index + 1);
-                        if (!Int32.TryParse(val, out i))
-                        {
-                            newFileName += "-1";
-                        }
-                        else
-                        {
-                            i++;
-                            newFileName = newFileName.Substring(0, index);
-                            newFileName += "-" + i.ToString();
-                        }
-                    }
-                    newFilePath = Path.Combine(match.MasterFolder.FullPath, newFileName + f.Extension);
-                }
                 if (!_session.IsDebugOnly)
                 {
-                    File.Move(filepath, newFilePath);
+                    FileUtilities.SafeMoveFile(f, match.MasterFolder.FullPath);
                 }
             }
         }

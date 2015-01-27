@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using FileOrganizer.Core;
-using System.Linq;
+using FileOrganizer.Images;
 using System;
-using System.Configuration;
+using StructureMap;
 
 namespace FileOrganizer
 {
@@ -26,19 +26,30 @@ namespace FileOrganizer
     {
         static void Main(string[] args)
         {
-            string masterRootPath = ConfigurationManager.AppSettings["MasterRootPath"];
-            string fileRootPath = ConfigurationManager.AppSettings["FileRootPath"];
-            int minLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MinLevel"]);
-            int maxLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MaxLevel"]);
-            string ext = ConfigurationManager.AppSettings["Extensions"];
-            string[] extensions = ext.Split(',');
-            bool isDebugOnly = Convert.ToBoolean(ConfigurationManager.AppSettings["IsDebugOnly"]);
+            Console.WriteLine("FileOrganizer   Copyright (C) 2015 Peter Wetzel");
+            Console.WriteLine("This program comes with ABSOLUTELY NO WARRANTY; for details see license.txt.");
 
-            Processor p = new Processor(masterRootPath, fileRootPath, extensions.ToList(), isDebugOnly);
-            p.MinLevel = minLevel;
-            p.MaxLevel = maxLevel;
-            p.Process();
-            Console.WriteLine("FileOrganizer processing complete");
+            var container = new Container(new ImageRegistry());
+            var settings = container.GetInstance<IFileOrganizerSettings>();
+            var handlers = container.GetAllInstances<IProcessorPhase>();
+
+            Console.WriteLine("Current configuration settings...");
+            Console.WriteLine("Master Root Path: {0}", settings.MasterRootPath);
+            Console.WriteLine("Master Min Level (1=Root): {0}", settings.MinLevel);
+            Console.WriteLine("Master Max Level (1=Root): {0}", settings.MaxLevel);
+            Console.WriteLine("File Root Path: {0}", settings.FileRootPath);
+            if (settings.IsDebugOnly) Console.WriteLine("Debug only. No files will be moved.");
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Do you want to re-use Master Root data if it exists? [y/N]");
+            bool reuseMaster = Console.ReadKey().Key == ConsoleKey.Y;
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
+            Processor p = new Processor(settings, new ConsoleOutput(), handlers);
+            p.Process(reuseMaster);
+            Console.WriteLine("{0} FileOrganizer processing complete", DateTime.Now.ToString("HH:mm:ss.fff"));
+            Console.ReadLine();
         }
     }
 }

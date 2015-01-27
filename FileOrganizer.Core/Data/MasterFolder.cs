@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,9 +24,12 @@ using System.Text.RegularExpressions;
 
 namespace FileOrganizer.Core.Data
 {
+    [Serializable()]
     public class MasterFolder
     {
         private const string Pattern = @"[a-z] +[a-z]*|[\w'-]*";
+
+        private readonly string _masterRootPath;
 
         public string FullPath { get; set; }
 
@@ -34,8 +37,9 @@ namespace FileOrganizer.Core.Data
 
         public List<NameHash> NameHashes { get; set; }
 
-        public MasterFolder(string path)
+        public MasterFolder(string masterRootPath, string path)
         {
+            _masterRootPath = masterRootPath;
             FullPath = path;
             Name = Path.GetFileName(path);
             NameHashes = new List<NameHash>();
@@ -49,6 +53,7 @@ namespace FileOrganizer.Core.Data
                 return;
             }
 
+            // Short-circuit for simple numbers, as we only care about strings
             long test;
             if (long.TryParse(Name, out test))
             {
@@ -72,6 +77,7 @@ namespace FileOrganizer.Core.Data
             }
             else
             {
+                // Treat parentheses as a method for grouping AKAs/aliases that also need to be processed
                 int startGroup = Name.IndexOf('(');
                 int endGroup = Name.IndexOf(')');
                 string main = Name.Substring(0, startGroup);
@@ -95,19 +101,21 @@ namespace FileOrganizer.Core.Data
         private void ProcessName(string name, int baseScore)
         {
             name = name.Trim();
-            NameHashes.Add(new NameHash(this, name, baseScore + 50));
 
             // Note: We're getting matches with a blank string on every entry for some reason... seems fine when using online regex tools.
             var matches = Regex.Matches(name, Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (matches.Count <= 2)
+            if (matches.Count < 2)
             {
                 return;
             }
             StringBuilder hash = new StringBuilder();
 
+            int fullNameScore = baseScore + 3;
             if (matches.Count > 4)
             {
+                fullNameScore = baseScore + 50;
                 // First-Middle-Last
+                hash.Clear();
                 for (int i = 0; i < matches.Count; i++)
                 {
                     if (string.IsNullOrWhiteSpace(matches[i].Value)) { continue; }
@@ -117,6 +125,7 @@ namespace FileOrganizer.Core.Data
                 NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 45));
 
                 // First_Middle_Last
+                hash.Clear();
                 for (int i = 0; i < matches.Count; i++)
                 {
                     if (string.IsNullOrWhiteSpace(matches[i].Value)) { continue; }
@@ -135,76 +144,81 @@ namespace FileOrganizer.Core.Data
                 NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 43));
             }
 
-            var first = matches[0].Value;
-            var last = matches[matches.Count - 2].Value;
-
-            // First-Last
-            hash.Clear();
-            hash.Append(first);
-            hash.Append("-");
-            hash.Append(last);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 42));
-
-            // First_Last
-            hash.Clear();
-            hash.Append(first);
-            hash.Append("_");
-            hash.Append(last);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 41));
-
-            // FirstLast
-            hash.Clear();
-            hash.Append(first);
-            hash.Append(last);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 40));
-
-            // Last First
-            hash.Clear();
-            hash.Append(last);
-            hash.Append(" ");
-            hash.Append(first);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 35));
-
-            // Last-First
-            hash.Clear();
-            hash.Append(last);
-            hash.Append("-");
-            hash.Append(first);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 34));
-
-            // Last_First
-            hash.Clear();
-            hash.Append(last);
-            hash.Append("_");
-            hash.Append(first);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 33));
-
-            // LastFirst
-            hash.Clear();
-            hash.Append(last);
-            hash.Append(first);
-            NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 30));
-
-            // FLast
-            if (last.Length > 5)
+            if (matches.Count > 2)
             {
+                fullNameScore = baseScore + 50;
+                var first = matches[0].Value;
+                var last = matches[matches.Count - 2].Value;
+
+                // First-Last
                 hash.Clear();
-                hash.Append(first[0]);
+                hash.Append(first);
+                hash.Append("-");
                 hash.Append(last);
-                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 25));
-            }
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 42));
 
-            // Last
-            if (last.Length > 5)
-            {
-                NameHashes.Add(new NameHash(this, last, baseScore + 10));
-            }
+                // First_Last
+                hash.Clear();
+                hash.Append(first);
+                hash.Append("_");
+                hash.Append(last);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 41));
 
-            // First
-            if (first.Length > 5)
-            {
-                NameHashes.Add(new NameHash(this, first, baseScore + 1));
+                // FirstLast
+                hash.Clear();
+                hash.Append(first);
+                hash.Append(last);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 40));
+
+                // Last First
+                hash.Clear();
+                hash.Append(last);
+                hash.Append(" ");
+                hash.Append(first);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 35));
+
+                // Last-First
+                hash.Clear();
+                hash.Append(last);
+                hash.Append("-");
+                hash.Append(first);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 34));
+
+                // Last_First
+                hash.Clear();
+                hash.Append(last);
+                hash.Append("_");
+                hash.Append(first);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 33));
+
+                // LastFirst
+                hash.Clear();
+                hash.Append(last);
+                hash.Append(first);
+                NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 30));
+
+                // FLast
+                if (last.Length > 5)
+                {
+                    hash.Clear();
+                    hash.Append(first[0]);
+                    hash.Append(last);
+                    NameHashes.Add(new NameHash(this, hash.ToString(), baseScore + 25));
+                }
+
+                // Last
+                if (last.Length > 5)
+                {
+                    NameHashes.Add(new NameHash(this, last, baseScore + 10));
+                }
+
+                // First
+                if (first.Length > 5)
+                {
+                    NameHashes.Add(new NameHash(this, first, baseScore + 1));
+                }
             }
+            NameHashes.Add(new NameHash(this, name, fullNameScore));
         }
     }
 }

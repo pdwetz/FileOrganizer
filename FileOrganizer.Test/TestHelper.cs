@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2014 Peter Wetzel
+    Copyright (C) 2015 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,9 +24,14 @@ namespace FileOrganizer.Test
     {
         public const string FillerText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n";
 
+        public static string GetRootPath()
+        {
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        }
+
         public static string GetWorkingPath()
         {
-            return SetupFolder(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestFiles");
+            return SetupFolder(GetRootPath(), "TestFiles");
         }
 
         public static string SetupFolder(string sParentPath, string sName)
