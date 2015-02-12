@@ -194,11 +194,13 @@ namespace FileOrganizer.Core
                 {
                     continue;
                 }
-                if (f.DirectoryName == match.MasterFolder.FullPath)
+                // Check if already in subfolder of target
+                if (f.DirectoryName.StartsWith(match.MasterFolder.FullPath))
                 {
                     continue;
                 }
-                if (f.FullName.StartsWith(_session.MasterRootPath) && match.Score < 1030)
+                // Only move from one master folder to another if name is a really good match
+                if (f.DirectoryName.StartsWith(_session.MasterRootPath) && match.Score < 1030)
                 {
                     continue;
                 }
