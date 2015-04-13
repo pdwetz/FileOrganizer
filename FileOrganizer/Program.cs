@@ -35,8 +35,10 @@ namespace FileOrganizer
 
             Console.WriteLine("Current configuration settings...");
             Console.WriteLine("Master Root Path: {0}", settings.MasterRootPath);
-            Console.WriteLine("Master Min Level (1=Root): {0}", settings.MinLevel);
-            Console.WriteLine("Master Max Level (1=Root): {0}", settings.MaxLevel);
+            Console.WriteLine("Master Min Level (1=Root): {0}", settings.MasterMinLevel);
+            Console.WriteLine("Master Max Level (1=Root): {0}", settings.MasterMaxLevel);
+            Console.WriteLine("Master Override Score: {0}", settings.MasterOverrideScore);
+            Console.WriteLine("Min Score Required: {0}", settings.MinScore);
             Console.WriteLine("File Root Path: {0}", settings.FileRootPath);
             if (settings.IsDebugOnly) Console.WriteLine("Debug only. No files will be moved.");
 
@@ -49,6 +51,7 @@ namespace FileOrganizer
             Processor p = new Processor(settings, new ConsoleOutput(), handlers);
             p.Process(reuseMaster);
             Console.WriteLine("{0} FileOrganizer processing complete", DateTime.Now.ToString("HH:mm:ss.fff"));
+            Console.WriteLine("Press any key to continue");
             Console.ReadLine();
         }
     }

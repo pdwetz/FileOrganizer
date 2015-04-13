@@ -52,8 +52,10 @@ namespace FileOrganizer.Test
             {
                 MasterRootPath = masterPath,
                 FileRootPath = targetPath,
-                MinLevel = 1,
-                MaxLevel = 1,
+                MasterMinLevel = 1,
+                MasterMaxLevel = 1,
+                MinScore = 1000,
+                MasterOverrideScore = 1030,
                 IsDebugOnly = true,
                 ValidExtensions = ".txt,.doc".Split(',').ToList()
             };
@@ -80,8 +82,10 @@ namespace FileOrganizer.Test
             {
                 MasterRootPath = masterPath,
                 FileRootPath = targetPath,
-                MinLevel = 1,
-                MaxLevel = 1,
+                MasterMinLevel = 1,
+                MasterMaxLevel = 1,
+                MinScore = 1000,
+                MasterOverrideScore = 1030,
                 IsDebugOnly = true
             };
 
@@ -105,8 +109,10 @@ namespace FileOrganizer.Test
             {
                 MasterRootPath = masterPath,
                 FileRootPath = sPath,
-                MinLevel = 1,
-                MaxLevel = 1,
+                MasterMinLevel = 1,
+                MasterMaxLevel = 1,
+                MinScore = 1000,
+                MasterOverrideScore = 1030,
                 IsDebugOnly = true,
                 SequesterSmallImages = true,
                 SequesterFolderSmall = ImageSettings.DefaultSequesterFolderSmall,
@@ -134,8 +140,10 @@ namespace FileOrganizer.Test
             {
                 MasterRootPath = masterPath,
                 FileRootPath = sPath,
-                MinLevel = 1,
-                MaxLevel = 2,
+                MasterMinLevel = 1,
+                MasterMaxLevel = 2,
+                MinScore = 1000,
+                MasterOverrideScore = 1030,
                 IsDebugOnly = true,
                 SequesterInvalidImages = true,
                 SequesterFolderInvalid = ImageSettings.DefaultSequesterFolderInvalid

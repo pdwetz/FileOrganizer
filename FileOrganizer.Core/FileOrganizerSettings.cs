@@ -26,8 +26,10 @@ namespace FileOrganizer.Core
     {
         public string MasterRootPath { get; set; }
         public string FileRootPath { get; set; }
-        public int MinLevel { get; set; }
-        public int MaxLevel { get; set; }
+        public int MasterMinLevel { get; set; }
+        public int MasterMaxLevel { get; set; }
+        public int MinScore { get; set; }
+        public int MasterOverrideScore { get; set; }
         public List<string> ValidExtensions { get; set; }
         public bool IsDebugOnly { get; set; }
 
@@ -35,8 +37,10 @@ namespace FileOrganizer.Core
         {
             MasterRootPath = ConfigurationManager.AppSettings["MasterRootPath"];
             FileRootPath = ConfigurationManager.AppSettings["FileRootPath"];
-            MinLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MinLevel"]);
-            MaxLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MaxLevel"]);
+            MasterMinLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MasterMinLevel"]);
+            MasterMaxLevel = Convert.ToInt32(ConfigurationManager.AppSettings["MasterMaxLevel"]);
+            MinScore = Convert.ToInt32(ConfigurationManager.AppSettings["MinScore"]);
+            MasterOverrideScore = Convert.ToInt32(ConfigurationManager.AppSettings["MasterOverrideScore"]);
             string ext = ConfigurationManager.AppSettings["Extensions"];
             if (!string.IsNullOrWhiteSpace(ext))
             {
