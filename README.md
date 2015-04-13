@@ -10,6 +10,7 @@ This was primarily a project to scratch an itch of mine and isn't particularly m
 - Currently just a simple single-threaded, non-parallel, non-async app.
 - For large file systems (500k+ files), processing can take 10-20 minutes on a modern machine.
 - For small workloads (<10k files), it should run very quickly (a few seconds at most).
+- Utilizing the Image library for processing can dramatically increase processing time.
 
 ##Configuration##
 

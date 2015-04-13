@@ -150,7 +150,7 @@ namespace FileOrganizer.Core
                     ProcessMasterFolder(dir, level);
                 }
             }
-            if (level >= _settings.MinLevel && level <= _settings.MaxLevel)
+            if (level >= _settings.MasterMinLevel && level <= _settings.MasterMaxLevel)
             {
                 MasterFolders.Add(new MasterFolder(_session.MasterRootPath, path));
                 _session.MasterFolders++;
@@ -194,13 +194,17 @@ namespace FileOrganizer.Core
                 {
                     continue;
                 }
+                if (match.Score < _settings.MinScore)
+                {
+                    continue;
+                }
                 // Check if already in subfolder of target
                 if (f.DirectoryName.StartsWith(match.MasterFolder.FullPath))
                 {
                     continue;
                 }
                 // Only move from one master folder to another if name is a really good match
-                if (f.DirectoryName.StartsWith(_session.MasterRootPath) && match.Score < 1030)
+                if (f.DirectoryName.StartsWith(_session.MasterRootPath) && match.Score < _settings.MasterOverrideScore)
                 {
                     continue;
                 }
