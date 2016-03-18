@@ -18,7 +18,6 @@
 using NUnit.Framework;
 using System.IO;
 using System.Linq;
-using StructureMap;
 using FileOrganizer.Core;
 using FileOrganizer.Images;
 
@@ -101,9 +100,7 @@ namespace FileOrganizer.Test
         public void image_small_filter()
         {
             string masterPath = TestHelper.SetupFolder(_testingPath, "Images\\sample");
-
-            var rootPath = TestHelper.GetRootPath();
-            string sPath = Path.Combine(rootPath, "assets\\small");
+            string sPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "assets\\small");
 
             var settings = new ImageSettings
             {
@@ -132,9 +129,7 @@ namespace FileOrganizer.Test
         public void image_invalid_filter()
         {
             string masterPath = TestHelper.SetupFolder(_testingPath, "Images\\sample");
-
-            var rootPath = TestHelper.GetRootPath();
-            string sPath = Path.Combine(rootPath, "assets\\invalid");
+            string sPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "assets\\invalid");
 
             var settings = new ImageSettings
             {
