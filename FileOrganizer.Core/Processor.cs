@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2015 Peter Wetzel
+    Copyright (C) 2018 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,28 +48,27 @@ namespace FileOrganizer.Core
 
         public Processor(IFileOrganizerSettings settings, IConsoleOutput consoleOutput, IEnumerable<IProcessorPhase> handlers)
         {
-            if (settings == null)
-            {
-                throw new ArgumentNullException("settings");
-            }
-            _settings = settings;
+            _settings = settings ?? throw new ArgumentNullException("settings");
 
             ConsoleOutput = consoleOutput;
             if (ConsoleOutput == null) { ConsoleOutput = new DebugOutput(); }
 
             if (!Directory.Exists(settings.MasterRootPath))
             {
-                throw new ApplicationException("Master root path does not exist: " + _settings.MasterRootPath);
+                throw new ApplicationException($"Master root path does not exist: {_settings.MasterRootPath}");
             }
 
             if (!Directory.Exists(settings.FileRootPath))
             {
-                throw new ApplicationException("File root path does not exist: " + _settings.FileRootPath);
+                throw new ApplicationException($"File root path does not exist: {_settings.FileRootPath}");
             }
 
             _handlers = handlers;
             _session = new FileOrgSession(_settings);
-            MasterOutputFilePath = string.Format(MasterOutputFileFormat, _session.MasterRootPath.GetHashCode());
+            var tempPath = Path.GetTempPath();
+            var outputPath = FileUtilities.SetupFolder(tempPath, "FileOrganizer");
+            var outputFileName = string.Format(MasterOutputFileFormat, _session.MasterRootPath.GetHashCode());
+            MasterOutputFilePath = Path.Combine(outputPath, outputFileName);
             MasterFolders = new List<MasterFolder>();
             MasterHashes = new List<NameHash>();
             TargetFiles = new List<TargetFile>();

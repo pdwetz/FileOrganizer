@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2015 Peter Wetzel
+    Copyright (C) 2018 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using FileOrganizer.Core.Data;
+using FileOrganizer.Core.Utilities;
 using NUnit.Framework;
 using System.Linq;
 
@@ -39,7 +40,7 @@ namespace FileOrganizer.Test
             string initial = "misc - something ";
             string validResult = "something";
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             string result = folder.NameHashes.FirstOrDefault().Hash;
 
@@ -53,7 +54,7 @@ namespace FileOrganizer.Test
             string initial = "some thing (alpha, bravo, charlie delta)";
             int validResultCount = 19;
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
@@ -66,7 +67,7 @@ namespace FileOrganizer.Test
             string initial = "Single";
             int validResultCount = 1;
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
@@ -79,7 +80,7 @@ namespace FileOrganizer.Test
             string initial = "Single Folder";
             int validResultCount = 11;
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             int resultCount = folder.NameHashes.Count;
 
@@ -91,7 +92,7 @@ namespace FileOrganizer.Test
         {
             string initial = "Single Folder";
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             var first = folder.NameHashes.OrderByDescending(x => x.Score).First();
 
@@ -103,7 +104,7 @@ namespace FileOrganizer.Test
         {
             string initial = "Single Folder";
 
-            string masterPath = TestHelper.SetupFolder(_rootPath, initial);
+            string masterPath = FileUtilities.SetupFolder(_rootPath, initial);
             var folder = new MasterFolder(masterPath, masterPath);
             var last = folder.NameHashes.OrderBy(x => x.Score).First();
 
@@ -116,8 +117,8 @@ namespace FileOrganizer.Test
             string nameMisc = "misc - something";
             string nameNormal = "something";
 
-            var miscFolder = new MasterFolder(_rootPath, TestHelper.SetupFolder(_rootPath, nameMisc));
-            var normalFolder = new MasterFolder(_rootPath, TestHelper.SetupFolder(_rootPath, nameNormal));
+            var miscFolder = new MasterFolder(_rootPath, FileUtilities.SetupFolder(_rootPath, nameMisc));
+            var normalFolder = new MasterFolder(_rootPath, FileUtilities.SetupFolder(_rootPath, nameNormal));
 
             var miscScore = miscFolder.NameHashes.FirstOrDefault().Score;
             var normalScore = normalFolder.NameHashes.FirstOrDefault().Score;

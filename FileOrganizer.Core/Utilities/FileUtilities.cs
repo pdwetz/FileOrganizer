@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2015 Peter Wetzel
+    Copyright (C) 2018 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,11 +23,37 @@ namespace FileOrganizer.Core.Utilities
     public class FileUtilities
     {
         /// <summary>
+        /// Will create subfolder if it doesn't already exist
+        /// </summary>
+        /// <returns>Full path for child folder</returns>
+        public static string SetupFolder(string parentPath, string folderName)
+        {
+            if (string.IsNullOrWhiteSpace(parentPath))
+            {
+                throw new ArgumentException("Parent path is required", nameof(parentPath));
+            }
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentException("Folder name is required", nameof(folderName));
+            }
+            if (!Directory.Exists(parentPath))
+            {
+                throw new ArgumentException("Parent path does not exist", nameof(parentPath));
+            }
+            string path = Path.Combine(parentPath, folderName);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            return path;
+        }
+
+        /// <summary>
         /// Will attempt to move the given file to target folder, creating folder if necessary and renaming file if the name already exists in target location.
         /// </summary>
         public static void SafeMoveFile(string existingFilePath, string targetFolderPath)        
         {
-            FileInfo f = new FileInfo(existingFilePath);
+            var f = new FileInfo(existingFilePath);
             SafeMoveFile(f, targetFolderPath);
         }
 
@@ -44,8 +70,8 @@ namespace FileOrganizer.Core.Utilities
             {
                 Directory.CreateDirectory(targetFolderPath);
             }
-            var newFileName = f.Name.Replace(f.Extension, "");
-            var newFilePath = Path.Combine(targetFolderPath, newFileName + f.Extension);
+            var newFileName = Path.GetFileNameWithoutExtension(f.Name);
+            var newFilePath = Path.Combine(targetFolderPath, $"{newFileName}{f.Extension}");
             while (File.Exists(newFilePath))
             {
                 int index = newFileName.LastIndexOf('-');
@@ -55,9 +81,8 @@ namespace FileOrganizer.Core.Utilities
                 }
                 else
                 {
-                    int i;
                     string val = newFileName.Substring(index + 1);
-                    if (!Int32.TryParse(val, out i))
+                    if (!Int32.TryParse(val, out int i))
                     {
                         newFileName += "-1";
                     }
@@ -65,10 +90,10 @@ namespace FileOrganizer.Core.Utilities
                     {
                         i++;
                         newFileName = newFileName.Substring(0, index);
-                        newFileName += "-" + i.ToString();
+                        newFileName += $"-{i}";
                     }
                 }
-                newFilePath = Path.Combine(targetFolderPath, newFileName + f.Extension);
+                newFilePath = Path.Combine(targetFolderPath, $"{newFileName}{f.Extension}");
             }
             File.Move(f.FullName, newFilePath);
         }

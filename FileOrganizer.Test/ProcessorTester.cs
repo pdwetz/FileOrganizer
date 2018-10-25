@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2015 Peter Wetzel
+    Copyright (C) 2018 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using FileOrganizer.Core;
 using FileOrganizer.Images;
+using FileOrganizer.Core.Utilities;
 
 namespace FileOrganizer.Test
 {
@@ -40,8 +41,8 @@ namespace FileOrganizer.Test
         {
             const string validFileName = "am-i-valid.txt";
             const string invalidFileName = "am-i-valid.jpg";
-            string masterPath = TestHelper.SetupFolder(_testingPath, "Documents\\valid");
-            string targetPath = TestHelper.SetupFolder(_testingPath, "Stuff");
+            string masterPath = FileUtilities.SetupFolder(_testingPath, "Documents\\valid");
+            string targetPath = FileUtilities.SetupFolder(_testingPath, "Stuff");
             string sFilePath = Path.Combine(targetPath, validFileName);
             TestHelper.CreateTextFile(sFilePath, 1);
             sFilePath = Path.Combine(targetPath, invalidFileName);
@@ -70,8 +71,8 @@ namespace FileOrganizer.Test
         {
             const string validFileName = "am-i-valid.txt";
             const string invalidFileName = "am-i-valid.jpg";
-            string masterPath = TestHelper.SetupFolder(_testingPath, "Images\\valid");
-            string targetPath = TestHelper.SetupFolder(_testingPath, "Stuff");
+            string masterPath = FileUtilities.SetupFolder(_testingPath, "Images\\valid");
+            string targetPath = FileUtilities.SetupFolder(_testingPath, "Stuff");
             string sFilePath = Path.Combine(targetPath, validFileName);
             TestHelper.CreateTextFile(sFilePath, 1);
             sFilePath = Path.Combine(targetPath, invalidFileName);
@@ -99,7 +100,7 @@ namespace FileOrganizer.Test
         [Test]
         public void image_small_filter()
         {
-            string masterPath = TestHelper.SetupFolder(_testingPath, "Images\\sample");
+            string masterPath = FileUtilities.SetupFolder(_testingPath, "Images\\sample");
             string sPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "assets\\small");
 
             var settings = new ImageSettings
@@ -128,7 +129,7 @@ namespace FileOrganizer.Test
         [Test]
         public void image_invalid_filter()
         {
-            string masterPath = TestHelper.SetupFolder(_testingPath, "Images\\sample");
+            string masterPath = FileUtilities.SetupFolder(_testingPath, "Images\\sample");
             string sPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "assets\\invalid");
 
             var settings = new ImageSettings
