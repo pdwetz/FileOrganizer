@@ -8,14 +8,14 @@ Everything is processed in memory with the results dumped into CSV files for rev
 supports multiple parsers, currently the only special one is an Image library for doing some additional
 processing/cleanup for small or invalid images.
 
-##Features
+## Features
 - Console application, but settings handled via config file or via code.
 - Currently just a simple single-threaded, non-parallel, non-async app.
 - For large file systems (500k+ files), processing can take 10-20 minutes on a modern machine.
 - For small workloads (<10k files), it should run very quickly (a few seconds at most).
 - Utilizing the Image library for processing can dramatically increase processing time.
 
-##Configuration
+## Configuration
 
 The app now uses DI via StructureMap for setup and configuration. You can setup your own implementation of IFileOrganizerSettings 
 and Registry classes in a local build, of course alongside custom IProcessorPhase classes if you want to do any custom processing.
@@ -35,6 +35,6 @@ and Registry classes in a local build, of course alongside custom IProcessorPhas
   - SequesterInvalidImages - true/false flag for whether we should move invalid/corrupt images to a subfolder
   - SequesterFolderInvalid - ame of the folder to move invalid/corrupt images (defaults to "tmp-invalid-img")
   
-##Future
+## Future
 Nothing major planned, aside from adding additional helper libraries. At the moment, I'm leaning towards music, although movies are another option as well.
 Dealing with metadata for things like Word or Excel docs might be interesting.
