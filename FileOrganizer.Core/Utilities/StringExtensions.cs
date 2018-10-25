@@ -1,6 +1,6 @@
 ﻿/*
     FileOrganizer - Moves files to folders by loosely matching names
-    Copyright (C) 2015 Peter Wetzel
+    Copyright (C) 2018 Peter Wetzel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,10 @@ namespace FileOrganizer.Core.Utilities
         /// </summary>
         public static bool Contains(this string source, string toCheck, StringComparison comp)
         {
-            if (source == null || toCheck == null) { return false; }
+            if (source == null || toCheck == null)
+            {
+                return false;
+            }
             return source.IndexOf(toCheck, comp) >= 0;
         }
     }
